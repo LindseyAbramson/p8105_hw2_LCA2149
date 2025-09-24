@@ -34,11 +34,12 @@ Now let's import snp.csv clean it up.
 ```{r}
 snp_df=
   read_csv("data/snp.csv") |>
-      mutate(
-        date=mdy(date),
-        year = year(date),
-        month = month.name[month(date)] 
-      ) |>
+     mutate(
+    date = mdy(date),
+    date = as.Date(ifelse(year(date) > 2025, date - years(100), date)),
+    year = year(date),
+    month = month.name[month(date)]
+  ) |>
   select(year, month, everything(), -date) |>
   arrange(year, match(month, month.name))
 ```
@@ -53,9 +54,24 @@ unemployment_df=
     values_to = "unemployment"  
   ) |>
   mutate(
- month = str_to_title(month)
+ month = month.name[match(month, month.abb)],
+ year = Year,
   ) |>
-  arrange(Year, month)
+  select(year, month, unemployment) |>
+  arrange(year, month)
 ```
 
+Let's merge all three datasets now.
+```{r}
+fivethirtyeight1_df =
+  left_join(snp_df, polsmonth_df, by=c("year", "month"))
+```
+
+```{r}
+fivethirtyeight_df = 
+  left_join(fivethirtyeight1_df, unemployment_df, by=c("year", "month"))
+view(fivethirtyeight_df)
+```
+
+The three datasets from the FiveThirtyEight data are all time-series datasets that compare data over time. The `polsmonth_df` data set summarizes monthly political standings. It includes date, number of republican governors, number of republican senators, number of republican represetatives in congress, number of democratic governors, number of democratic senators, number of democratic representatives in congress, and party affiliation of the president. I split the date into month and year and created a president variable. The `snp_df` dataset summarizes daily stockmarket data including the date and value at close. I converted the date here. The `unemployment_df` dataset summarizes unemployment rates across month and year. I reshaped this from a long to wide format and converted month abbreviations to full names. After merging all three datasets by year and month, the resulting dataset `fivethirtyeight_df` contains information on politics, stock market value, and unemployment for each month in the overlapping years. The data ranges from 1950-2015. This new dataset contains 11 variables x 787 rows. Important variables include: year, month, stock value close, unemployment rate, president political party, and various governor/senator count data points.
 
