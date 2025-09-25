@@ -75,3 +75,37 @@ view(fivethirtyeight_df)
 
 The three datasets from the FiveThirtyEight data are all time-series datasets that compare data over time. The `polsmonth_df` data set summarizes monthly political standings. It includes date, number of republican governors, number of republican senators, number of republican represetatives in congress, number of democratic governors, number of democratic senators, number of democratic representatives in congress, and party affiliation of the president. I split the date into month and year and created a president variable. The `snp_df` dataset summarizes daily stockmarket data including the date and value at close. I converted the date here. The `unemployment_df` dataset summarizes unemployment rates across month and year. I reshaped this from a long to wide format and converted month abbreviations to full names. After merging all three datasets by year and month, the resulting dataset `fivethirtyeight_df` contains information on politics, stock market value, and unemployment for each month in the overlapping years. The data ranges from 1950-2015. This new dataset contains 11 variables x 787 rows. Important variables include: year, month, stock value close, unemployment rate, president political party, and various governor/senator count data points.
 
+
+## Question 2
+
+Read and clean the Mr. Trash Wheel sheet
+```{r}
+library(readxl)
+
+Mrtrash_df=
+  read_excel("data/TrashWheelCollectionData.xlsx", sheet="Mr. Trash Wheel", range= "A2:N653", na = c("NA", ".", "")) |>
+  janitor::clean_names() |>
+  mutate(
+    sports_balls=as.integer(round(sports_balls))
+  ) 
+```
+
+
+Do the same for Professor Trash Wheel
+```{r}
+Proftrash_df=
+  read_excel("data/TrashWheelCollectionData.xlsx", sheet="Professor Trash Wheel", range= "A2:M120", na = c("NA", ".", "")) |>
+  janitor::clean_names() 
+```
+
+
+And Gwynnda
+```{r}
+Gwynnda_df=
+  read_excel("data/TrashWheelCollectionData.xlsx", sheet="Gwynnda Trash Wheel", range= "A2:L265", na = c("NA", ".", "")) |>
+  janitor::clean_names() 
+```
+
+
+Merge all three datasets.
+
