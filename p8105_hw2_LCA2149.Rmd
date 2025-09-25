@@ -73,7 +73,7 @@ fivethirtyeight_df =
 view(fivethirtyeight_df)
 ```
 
-The three datasets from the FiveThirtyEight data are all time-series datasets that compare data over time. The `polsmonth_df` data set summarizes monthly political standings. It includes date, number of republican governors, number of republican senators, number of republican represetatives in congress, number of democratic governors, number of democratic senators, number of democratic representatives in congress, and party affiliation of the president. I split the date into month and year and created a president variable. The `snp_df` dataset summarizes daily stockmarket data including the date and value at close. I converted the date here. The `unemployment_df` dataset summarizes unemployment rates across month and year. I reshaped this from a long to wide format and converted month abbreviations to full names. After merging all three datasets by year and month, the resulting dataset `fivethirtyeight_df` contains information on politics, stock market value, and unemployment for each month in the overlapping years. The data ranges from 1950-2015. This new dataset contains 11 variables x 787 rows. Important variables include: year, month, stock value close, unemployment rate, president political party, and various governor/senator count data points.
+The three datasets from the `fivethirtyeight_df` data are all time-series datasets that compare data over time. The `polsmonth_df` data set summarizes monthly political standings. It includes date, number of republican governors, number of republican senators, number of republican represetatives in congress, number of democratic governors, number of democratic senators, number of democratic representatives in congress, and party affiliation of the president. I split the date into month and year and created a president variable. The `snp_df` dataset summarizes daily stockmarket data including the date and value at close. I converted the date here. The `unemployment_df` dataset summarizes unemployment rates across month and year. I reshaped this from a long to wide format and converted month abbreviations to full names. After merging all three datasets by year and month, the resulting dataset `fivethirtyeight_df` contains information on politics, stock market value, and unemployment for each month in the overlapping years. The data ranges from 1950-2015. This new dataset contains 11 variables x 787 rows. Important variables include: year, month, stock value close, unemployment rate, president political party, and various governor/senator count data points.
 
 
 ## Question 2
@@ -86,7 +86,9 @@ Mrtrash_df=
   read_excel("data/TrashWheelCollectionData.xlsx", sheet="Mr. Trash Wheel", range= "A2:N653", na = c("NA", ".", "")) |>
   janitor::clean_names() |>
   mutate(
-    sports_balls=as.integer(round(sports_balls))
+    sports_balls=as.integer(round(sports_balls)),
+    year = as.integer(year),
+    dataset = "Mr"
   ) 
 ```
 
@@ -95,7 +97,8 @@ Do the same for Professor Trash Wheel
 ```{r}
 Proftrash_df=
   read_excel("data/TrashWheelCollectionData.xlsx", sheet="Professor Trash Wheel", range= "A2:M120", na = c("NA", ".", "")) |>
-  janitor::clean_names() 
+  janitor::clean_names() |>
+   mutate(dataset = "Professor")
 ```
 
 
@@ -103,9 +106,32 @@ And Gwynnda
 ```{r}
 Gwynnda_df=
   read_excel("data/TrashWheelCollectionData.xlsx", sheet="Gwynnda Trash Wheel", range= "A2:L265", na = c("NA", ".", "")) |>
-  janitor::clean_names() 
+  janitor::clean_names() |>
+   mutate(dataset = "Gwynnda") 
 ```
 
 
 Merge all three datasets.
+```{r}
+trash_df <- bind_rows(Mrtrash_df, Proftrash_df, Gwynnda_df)
+```
 
+Compute total weight of trash collected by prof trash wheel
+```{r}
+sum(Proftrash_df$weight_tons) 
+```
+
+Compute the total number of cigarette butts collected by Gwynnda in June 2022.
+```{r}
+sum(Gwynnda_df$cigarette_butts[
+  Gwynnda_df$month == "June" & Gwynnda_df$year == 2022]) 
+```
+
+The combined `trash_df` dataset combines the following three datasets 
+`Mrtrash_df`, `Proftrash_df`, and `Gwynnda_df` for a combined 15 columns and 
+1,032 observations. This dataset combines three Baltimore waterway trash 
+collection sites: Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda. Examples 
+of key variables include weight_lbs (weight of trash collected), 
+cigarette_butts, and sports_balls. Across the dataset, Professor Trash Wheel 
+collected a total of 246.74 pounds of trash. Focusing on Gwynnda in June 2022, 
+a total of 18,120 cigarette butts were collected.
