@@ -135,3 +135,73 @@ of key variables include weight_lbs (weight of trash collected),
 cigarette_butts, and sports_balls. Across the dataset, Professor Trash Wheel 
 collected a total of 246.74 pounds of trash. Focusing on Gwynnda in June 2022, 
 a total of 18,120 cigarette butts were collected.
+
+## Question 3
+
+Import Zip Code data
+```{r}
+Zipcode_df=
+  read_csv("data/Zip Codes.csv", na = c("NA", ".", "")) |>
+  janitor::clean_names() 
+```
+
+Import Zip_zori
+```{r}
+Zipzori_df =
+  read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", 
+           na = c("NA", ".", "")) |>
+  janitor::clean_names() |>
+  pivot_longer(
+    cols=starts_with("x20"),
+    names_to="date",
+    values_to="zillow_value"
+  ) |>
+   filter(zillow_value != 0) |>
+  rename(
+  zip_code=region_name)  |>
+  mutate(
+    date = as.Date(gsub("x", "", gsub("_", "-", date)))
+  ) 
+```
+
+
+Merge
+```{r}
+Zillow_df =
+  left_join(Zipzori_df, Zipcode_df, by=c("zip_code")) |>
+  select(date, zip_code, neighborhood, county, city, state, zillow_value, everything(), -state_name, -county_name)
+```
+
+Describe dataset
+```{r}
+nrow(Zillow_df)
+n_distinct(Zillow_df$zip_code)
+n_distinct(Zillow_df$neighborhood)
+
+missing_zips = setdiff(Zipcode_df$zip_code, Zipzori_df$zip_code)
+missing_zips
+```
+
+COVID rental drop
+```{r}
+
+library(dplyr)
+library(stringr)
+
+covid_drop <- Zillow_df |>
+  filter(str_starts(date, "2020-01") | str_starts(date, "2021-01")) |>
+  group_by(zip_code, county, neighborhood) |>
+  summarise(
+    rent_2020 = zillow_value[str_starts(date, "2020-01")],
+    rent_2021 = zillow_value[str_starts(date, "2021-01")],
+    drop = rent_2021 - rent_2020,
+    .groups = "drop"
+  ) |>
+  arrange(drop) |>
+  slice_head(n = 10)
+
+covid_drop
+```
+
+
+The `Zillow_df` dataset contains 10,677 observations, 149 distinct zip codes, and 43 neighborhoods. There were many excluded zipcodes, about 171 to be exact. These excluded zipcodes were excluded for various reasons including being business only zipcodes, commercial/governmenta/industry areas. Some specific examples include the two airport zipcodes that were excluded, 11430 (JFK) and 11371 (LaGuardia). Furthermore, 10550 and 10704 are both outside of the five boroughs. From January 2020 to January 2021 there were major price reductions in rent. As we see above, the largest 10 price drops occured in Manhattan ranging from a decrease of $913 to $685.
