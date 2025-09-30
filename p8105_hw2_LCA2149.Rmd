@@ -156,20 +156,21 @@ Zipzori_df =
     names_to="date",
     values_to="zillow_value"
   ) |>
-   filter(zillow_value != 0) |>
-  rename(
-  zip_code=region_name)  |>
   mutate(
     date = as.Date(gsub("x", "", gsub("_", "-", date)))
-  ) 
+  ) |>
+  select(
+    zip_code=region_name,
+    date, zillow_value,
+    everything())
+  
 ```
 
 
 Merge
 ```{r}
 Zillow_df =
-  left_join(Zipzori_df, Zipcode_df, by=c("zip_code")) |>
-  select(date, zip_code, neighborhood, county, city, state, zillow_value, everything(), -state_name, -county_name)
+  left_join(Zipzori_df, Zipcode_df, by="zip_code") 
 ```
 
 Describe dataset
@@ -204,4 +205,4 @@ covid_drop
 ```
 
 
-The `Zillow_df` dataset contains 10,677 observations, 149 distinct zip codes, and 43 neighborhoods. There were many excluded zipcodes, about 171 to be exact. These excluded zipcodes were excluded for various reasons including being business only zipcodes, commercial/governmenta/industry areas. Some specific examples include the two airport zipcodes that were excluded, 11430 (JFK) and 11371 (LaGuardia). Furthermore, 10550 and 10704 are both outside of the five boroughs. From January 2020 to January 2021 there were major price reductions in rent. As we see above, the largest 10 price drops occured in Manhattan ranging from a decrease of $913 to $685.
+The `Zillow_df` dataset contains 17,516 observations, 149 distinct zip codes, and 43 neighborhoods. There were many excluded zipcodes, about 171 to be exact. These excluded zipcodes were excluded for various reasons including being business only zipcodes, commercial/governmenta/industry areas. Some specific examples include the two airport zipcodes that were excluded, 11430 (JFK) and 11371 (LaGuardia). Furthermore, 10550 and 10704 are both outside of the five boroughs. From January 2020 to January 2021 there were major price reductions in rent. As we see above, the largest 10 price drops occured in Manhattan ranging from a decrease of $913 to $685.
